@@ -97,17 +97,29 @@ def show_diffs(a, b):
         print([(k, a[k], b[k]) for k in a.keys() if a[k] != b[k]])
 
 
+def get_diffs(a, b):
+    """
+    Get all differences between files.
+    """
+    if a.keys() != b.keys():
+        return list(set(a.keys()) - set(b.keys()))
+    else:
+        return [k for k in a.keys() if a[k] != b[k]]
+
+
 def watch_dir(dir_, callback, method=HASHES):
     """
     Loop continuously, calling function <callback> if any non-excluded
     file has changed.
     """
-    filedict = {}
+    # don't run immediatelly, wait for change to occur first
+    excludes = get_exclude_patterns_from_file(dir_ + "/.conttest-excludes")
+    filedict = walk(dir_, method, {}, excludes=excludes)
+
     while True:
-        excludes = get_exclude_patterns_from_file(dir_ + "/.conttest-excludes")
         new = walk(dir_, method, {}, excludes=excludes)
         if new != filedict:
-            callback()
+            callback(get_diffs(new, filedict))
             # Do it again, in case command changed files (don't retrigger)
             filedict = walk(dir_, method, {}, excludes=excludes)
         time.sleep(0.3)
@@ -128,6 +140,20 @@ def main():
     else:
         print("Usage: %s command args ..." % __file__)
 
+def run_callback_on_update(callback):
+    try:
+        watch_dir(".", callback, method=TIMES)
+    except KeyboardInterrupt:
+        print
+
+
+def test(changed_files):
+    # print(changed_files)  
+    cmd = ' '.join(["echo", *changed_files])
+    print(cmd)
+    subprocess.call(cmd, shell=True)
+
 
 if __name__ == '__main__':
-    main()
+    # main()
+    run_callback_on_update(test)
