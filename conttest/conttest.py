@@ -24,9 +24,9 @@ def include_file_in_checks(path, excludes):
     file has an undesired prefix, an undesired file extension, or
     lives in an undesired directory.
     """
-    IGNORE_PREFIXES = ('.', '#')
-    IGNORE_EXTENSIONS = ('pyc', 'pyo', '_flymake.py')
-    IGNORE_DIRS = ('.git', '.hg', '.svn')
+    IGNORE_PREFIXES = (".", "#")
+    IGNORE_EXTENSIONS = ("pyc", "pyo", "_flymake.py")
+    IGNORE_DIRS = (".git", ".hg", ".svn")
 
     basename = os.path.basename(path)
     for p in IGNORE_PREFIXES:
@@ -81,8 +81,7 @@ def get_exclude_patterns_from_file(path):
     if not os.path.exists(path):
         return []
     with file(path) as f:
-        return [s.strip() for s in f.read().split()
-                if s.strip() != ""]
+        return [s.strip() for s in f.read().split() if s.strip() != ""]
 
 
 def show_diffs(a, b):
@@ -127,33 +126,18 @@ def watch_dir(dir_, callback, method=HASHES):
 
 def do_command_on_update(cmd):
     try:
-        watch_dir(".", lambda: subprocess.call(cmd, shell=True),
-                  method=TIMES)
+        watch_dir(".", lambda changes: subprocess.call(cmd, shell=True), method=TIMES)
     except KeyboardInterrupt:
         print
 
 
 def main():
-    cmd = ' '.join(sys.argv[1:])
+    cmd = " ".join(sys.argv[1:])
     if cmd:
         do_command_on_update(cmd)
     else:
         print("Usage: %s command args ..." % __file__)
 
-def run_callback_on_update(callback):
-    try:
-        watch_dir(".", callback, method=TIMES)
-    except KeyboardInterrupt:
-        print
 
-
-def test(changed_files):
-    # print(changed_files)  
-    cmd = ' '.join(["echo", *changed_files])
-    print(cmd)
-    subprocess.call(cmd, shell=True)
-
-
-if __name__ == '__main__':
-    # main()
-    run_callback_on_update(test)
+if __name__ == "__main__":
+    main()
