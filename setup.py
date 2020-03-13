@@ -8,15 +8,15 @@ except ImportError:
     from distutils.core import setup
 
 
-setup(name='conttest',
-      version='0.0.8',
-      author='John Jacobsen',
-      author_email='john@mail.npxdesigns.com',
-      packages=['conttest'],
+setup(name='src',
+      version='0.0.1',
+      author='Angel ILIEV, John Jacobsen',
+      author_email='a.v.iliev13@gmail.com',
+      packages=['src'],
       scripts=[],
-      url='https://github.com/eigenhombre/continuous-testing-helper',
+      url='https://github.com/AngelVI13/zouk',
       license='MIT',
-      description='Simple continuous testing tool',
+      description='Simple continuous task execution tool',
       long_description=open('README.md').read() if exists("README.md") else "",
-      entry_points=dict(console_scripts=['conttest=conttest.conttest:main']),
+      entry_points=dict(console_scripts=['src=src.src:main']),
       install_requires=[])

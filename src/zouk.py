@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 """
-Continuous Testing Helper
+Continuous Task Execution Helper
 
 Usage:
-  conttest <cmd> ...
+  src <cmd> ...
 
 """
-import argparse
+import re
+import time
 import hashlib
 import os.path
-import re
 import subprocess
-import time
 
 HASHES = "hashes"
 TIMES = "times"
@@ -112,7 +111,7 @@ def watch_dir(dir_, callback, method=HASHES):
     file has changed.
     """
     # don't run immediatelly, wait for change to occur first
-    excludes = get_exclude_patterns_from_file(dir_ + "/.conttest-excludes")
+    excludes = get_exclude_patterns_from_file(dir_ + "/.src-excludes")
     filedict = walk(dir_, method, {}, excludes=excludes)
 
     while True:
@@ -124,15 +123,16 @@ def watch_dir(dir_, callback, method=HASHES):
         time.sleep(0.3)
 
 
-callbacks = {
-    "black": "py -3 -m black {changed_files}",
-    "flake8": "py -3 -m flake8 {changed_files}",
-    "pytest": "py -3 -m pytest tests/",
+commands = {
+    # example:
+    # "black": "py -3 -m black {changed_files}",
+    # "flake8": "py -3 -m flake8 {changed_files}",
+    # "pytest": "py -3 -m pytest tests/",
 }
 
 
 def run_tasks(changed_files):
-    for name, cmd in callbacks.items():
+    for name, cmd in commands.items():
         if "{changed_files}" in cmd:
             cmd = cmd.format(changed_files=" ".join(changed_files))
 
@@ -147,27 +147,22 @@ def run_callback_on_update(callback):
         print()
 
 
-def main(directory):
-    if not os.path.isdir(directory):
-        print(f"Usage: {__file__} directory")
-        return
+def main():
+    print(f"Started watching directory: `{os.getcwd()}`")
 
-    os.chdir(directory)
-    print(f"Started watching directory: `{directory}`")
+    zoukfile = "./zoukfile.py"
+    if not os.path.exists(zoukfile):
+        raise RuntimeError(
+            "Zoukfile does not exists. Please create a zoukfile.py in your "
+            "projects top level directory and specify what commands you "
+            "would like to run continously"
+        )
+
+    with open(zoukfile, "r") as f:
+        exec(f.read(), globals())
+
     run_callback_on_update(run_tasks)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Watch a given folder for changes. If a file is changed, run the provided commands for it."
-    )
-    parser.add_argument(
-        "-d",
-        "--directory",
-        type=str,
-        required=True,
-        help="Directory to be watched for changes.",
-    )
-
-    args = parser.parse_args()
-    main(directory=args.directory)
+    main()
