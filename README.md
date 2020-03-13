@@ -49,7 +49,7 @@ during normal operation.
 
 ## Author
 
-Angel ILIEV
+Angel ILIEV, [John Jacobsen](http://zerolib.com)
 
 ## License
 
