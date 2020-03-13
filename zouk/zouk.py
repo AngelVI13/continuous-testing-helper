@@ -3,7 +3,7 @@
 Continuous Task Execution Helper
 
 Usage:
-  src <cmd> ...
+  zouk <cmd> ...
 
 """
 import re
@@ -111,7 +111,7 @@ def watch_dir(dir_, callback, method=HASHES):
     file has changed.
     """
     # don't run immediatelly, wait for change to occur first
-    excludes = get_exclude_patterns_from_file(dir_ + "/.src-excludes")
+    excludes = get_exclude_patterns_from_file(dir_ + "/.zouk-excludes")
     filedict = walk(dir_, method, {}, excludes=excludes)
 
     while True:
