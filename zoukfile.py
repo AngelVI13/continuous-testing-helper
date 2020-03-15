@@ -1,5 +1,14 @@
+import sys
+
+if sys.platform.startswith("win"):
+    PYTHON_CMD = "py -3"
+else:
+    PYTHON_CMD = "python3"
+
 commands = {
-    "black": "py -3 -m black {changed_files}",
-    "flake8": "py -3 -m flake8 {changed_files}",
-    "pytest": "py -3 -m pytest tests/",
+    "black": PYTHON_CMD + " -m black {changed_files}",
+    "flake8": PYTHON_CMD + " -m flake8 {changed_files} --max-line-length=100",
+    # "pylint": PYTHON_CMD + " -m pylint {changed_files}",
+    "mypy": PYTHON_CMD + " -m mypy {changed_files}",
+    "pytest": PYTHON_CMD + " -m pytest tests/",
 }
