@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Continuous Task Execution Helper
+Continuous Task Execution Helper.
 
 Usage:
   zouk
@@ -26,9 +26,7 @@ logging.basicConfig(
 
 
 class Method(Enum):
-    """
-    Enum variants that specify what method to use when computing file state
-    """
+    """Enum variants that specify what method to use when computing file state."""
 
     HASHES = auto()
     TIMES = auto()
@@ -50,6 +48,16 @@ def include_file_in_checks(path: str, excludes: List[str]) -> bool:
     Determine whether file should be included in checks; reject if
     file has an undesired prefix, an undesired file extension, or
     lives in an undesired directory.
+
+    Example:
+    >>> include_file_in_checks("myfile.py", excludes=[r".*exe"])
+    True
+    >>> include_file_in_checks("myfile.py", excludes=[r"my.*"])
+    False
+    >>> include_file_in_checks("myfile.pyc", excludes=[])
+    False
+    >>> include_file_in_checks(".myfile.py", excludes=[])
+    False
     """
 
     basename = os.path.basename(path)
@@ -81,6 +89,14 @@ def getstate(full_path: str, method: Method) -> FileStatus:
     """
     Get current file state based on provided method: i.e. either
     via hashing (sha224) or modified time.
+
+    Example:
+    >>> getstate("does_not_exist.py", Method.TIMES) is None
+    True
+    >>> isinstance(getstate("zoukfile.py", Method.TIMES), float)
+    True
+    >>> isinstance(getstate("zoukfile.py", Method.HASHES), str)
+    True
     """
     if method == Method.HASHES:
         try:

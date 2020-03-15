@@ -8,7 +8,7 @@ else:
 commands = {
     "black": PYTHON_CMD + " -m black {changed_files}",
     "flake8": PYTHON_CMD + " -m flake8 {changed_files} --max-line-length=100",
-    # "pylint": PYTHON_CMD + " -m pylint {changed_files}",
     "mypy": PYTHON_CMD + " -m mypy {changed_files}",
+    "doctest": PYTHON_CMD + " -m doctest {changed_files}",
     "pytest": PYTHON_CMD + " -m pytest tests/",
 }
