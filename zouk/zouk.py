@@ -188,7 +188,7 @@ def run_tasks(changed_files: List[str]):
             cmd = cmd.format(changed_files=" ".join(changed_files))
 
         logging.info(f"Running command: {name} -> `{cmd}`")
-        # todo disable output if return code is 0
+        # todo add option to disable output if return code is 0
         subprocess.call(cmd, shell=True)
 
 
