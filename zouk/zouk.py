@@ -13,10 +13,11 @@ import hashlib
 import os.path
 import logging
 import subprocess
-from typing import List, Dict, Optional, Union, Callable
 from enum import Enum, auto
+from typing import List, Dict, Union, Callable
 
 
+# setup logging
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     stream=sys.stdout,
@@ -25,10 +26,20 @@ logging.basicConfig(
 
 
 class Method(Enum):
+    """
+    Enum variants that specify what method to use when computing file state
+    """
+
     HASHES = auto()
     TIMES = auto()
 
 
+# setup type aliases for cleaner type hints
+FileStatus = Union[str, float, None]
+FileStatusDict = Dict[str, FileStatus]
+
+
+# default ignore dirs, extensions, prefixes
 IGNORE_PREFIXES = (".", "#")
 IGNORE_EXTENSIONS = ("pyc", "pyo", "_flymake.py")
 IGNORE_DIRS = (".git", ".hg", ".svn")
@@ -66,7 +77,11 @@ def excluded_pattern(root: str, excludes: List[str]) -> bool:
     return False
 
 
-def getstate(full_path: str, method: Method) -> Optional[Union[str, float]]:
+def getstate(full_path: str, method: Method) -> FileStatus:
+    """
+    Get current file state based on provided method: i.e. either
+    via hashing (sha224) or modified time.
+    """
     if method == Method.HASHES:
         try:
             content = open(full_path, "br").read()
@@ -81,9 +96,7 @@ def getstate(full_path: str, method: Method) -> Optional[Union[str, float]]:
         return None
 
 
-def walk(
-    top: str, method: Method, excludes: List[str]
-) -> Dict[str, Union[float, str, None]]:
+def walk(top: str, method: Method, excludes: List[str]) -> FileStatusDict:
     """
     Walk directory recursively, storing a hash value for any
     non-excluded file; return a dictionary for all such files.
@@ -110,11 +123,9 @@ def get_exclude_patterns_from_file(path: str) -> List[str]:
         return file_.read().split()
 
 
-def get_diffs(
-    new: Dict[str, Union[float, str, None]], old: Dict[str, Union[float, str, None]]
-) -> List[str]:
+def get_diffs(new: FileStatusDict, old: FileStatusDict) -> List[str]:
     """
-    Get all differences between files.
+    Get list of all files which have changed since last check.
     """
     if new.keys() != old.keys():
         return list(set(new.keys()) - set(old.keys()))
@@ -141,6 +152,8 @@ def watch_dir(dir_: str, callback: Callable, method: Method = Method.HASHES):
         time.sleep(0.3)
 
 
+# global variable contaning all commands to be executed and their aliases
+# this dictionary gets populated when the zoukfile.py is evaluated
 commands: Dict[str, str] = {
     # example:
     # "black": "py -3 -m black {changed_files}",
@@ -150,16 +163,24 @@ commands: Dict[str, str] = {
 
 
 def run_tasks(changed_files: List[str]):
+    """
+    Run all provided commands (from zoukfile.py). For commands that
+    accept it, a list of changed files is provided.
+    """
     for name, cmd in commands.items():
         if "{changed_files}" in cmd:
             cmd = cmd.format(changed_files=" ".join(changed_files))
 
         logging.info(f"Running command: {name} -> `{cmd}`")
+        # todo disable output if return code is 0
         subprocess.call(cmd, shell=True)
 
 
 def run_callback_on_update(callback: Callable):
-    """"""
+    """
+    Main entry point fo `zouk`: starts file watcher and provides it
+    a callable which to execute on any file change.
+    """
     try:
         watch_dir(".", callback, method=Method.TIMES)
     except KeyboardInterrupt:
@@ -174,10 +195,12 @@ def main():
         logging.error(
             "Zoukfile does not exists. Please create a zoukfile.py in your "
             "projects top level directory and specify what commands you "
-            "would like to run continously"
+            "would like to run continously."
         )
         sys.exit(1)
 
+    # evaluate zoukfile.py and update contents of `commands` dict with
+    # the ones provided inside the zoukfile.py
     with open(zoukfile, "r") as file_:
         exec(file_.read(), globals())
 
